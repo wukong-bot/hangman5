@@ -15,6 +15,7 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
+            line-height: 1;
         }
 
         h1 {
@@ -64,7 +65,7 @@
             position: absolute;
         }
 
-        /* 绞刑架部分 */
+        /* 绞刑架 */
         #gallows-top {
             width: 100px;
             height: 2px;
@@ -89,7 +90,7 @@
             background-color: #000;
         }
 
-        /* 绳子部分 */
+        /* 绳子 */
         #rope {
             width: 2px;
             height: 30px;
@@ -99,7 +100,7 @@
             display: none;
         }
 
-        /* 小人部分 */
+        /* 小人 */
         #head {
             width: 30px;
             height: 30px;
@@ -146,7 +147,6 @@
             top: 160px;
             left: 135px;
             transform: rotate(20deg);
-            top: 158px;
         }
 
         #right-leg {
@@ -154,7 +154,6 @@
             top: 160px;
             left: 165px;
             transform: rotate(-20deg);
-            top: 158px;
         }
 
         #game-result {
@@ -162,7 +161,6 @@
             font-size: 18px;
             text-align: center;
             margin-top: 10px;
-            line-height: 1;
         }
 
         #game-result .you-win {
@@ -197,7 +195,7 @@
 
 <body>
     <h1>Hangman Game <span>( <span class="blue-text">Time Left: </span><span class="red-text"><span id="timer">30</span>s</span> )</span></h1>
-    <div id="question">The capital city of Northern Ireland is  ______.</div>
+    <div id="question">The capital city of Northern Ireland is <span id="hidden-word">______</span>.</div>
     <div id="word-display"></div>
     <div id="letter-buttons"></div>
     <div id="hangman-container">
@@ -231,6 +229,12 @@
         let timeLeft = 30;
         const timerElement = document.getElementById('timer');
 
+        const correctSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2069/2069.wav');
+        const wrongSound = new Audio('https://static.bandlab.com/on-demand-revisions/d8cc417a-cf5a-66dc-a2c7-3659a6faf55d/d8cc417a-cf5a-66dc-a2c7-3659a6faf55d-mp3-44100-16bit-320kbps.mp3');
+        const winSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2059/2059.wav');
+        const loseSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2042/2042.wav');
+        const countdownSound = new Audio('https://assets.mixkit.co/active_storage/sfx/921/921.wav');
+
         function displayWord() {
             let display = "";
             for (let letter of wordToGuess) {
@@ -263,9 +267,12 @@
             if (!wordToGuess.toLowerCase().includes(guess)) {
                 wrongGuesses++;
                 drawHangman();
+                wrongSound.play();
                 if (wrongGuesses === maxWrongGuesses) {
                     showResult(false);
                 }
+            } else {
+                correctSound.play();
             }
 
             if (!guessedLetters.includes(guess)) {
@@ -297,12 +304,14 @@
                 document.querySelector('.you-lose').style.display = 'none';
                 document.querySelector('.answer-label').style.display = 'none';
                 document.querySelector('.answer-word').style.display = 'none';
+                winSound.play();
             } else {
                 document.querySelector('.you-win').style.display = 'none';
                 document.querySelector('.congratulations').style.display = 'none';
                 document.querySelector('.you-lose').style.display = 'block';
                 document.querySelector('.answer-label').style.display = 'inline';
                 document.querySelector('.answer-word').textContent = wordToGuess;
+                loseSound.play();
             }
         }
 
@@ -310,6 +319,9 @@
             const timerInterval = setInterval(() => {
                 timeLeft--;
                 timerElement.textContent = timeLeft;
+                if (timeLeft === 15) {
+                    countdownSound.play();
+                }
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
                     if (!isGameOver) {
